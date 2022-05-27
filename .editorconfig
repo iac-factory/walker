@@ -1,0 +1,14 @@
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+tab_width = unset
+max_line_length = off
+indent_style = space
+indent_size = 4
+
+ij_javascript_use_double_quotes = true
+ij_typescript_use_double_quotes = true

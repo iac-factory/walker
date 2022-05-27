@@ -1,0 +1,39 @@
+{
+    "name": "@iac-factory/walker",
+    "optionalDependencies": {
+        "@swc/core": "^1.2.182",
+        "@swc/helpers": "^0.3.15",
+        "@typescript-eslint/eslint-plugin": "^5.25.0",
+        "ts-node": "^10.7.0"
+    },
+    "devDependencies": {
+        "@types/node": "^17.0.34",
+        "@types/jest": "^27.5.1",
+        "eslint": "^8.16.0",
+        "eslint-plugin-import": "^2.26.0",
+        "jest": "^28.1.0",
+        "nodemon": "^2.0.16",
+        "typescript": "^4.6.4"
+    },
+    "dependencies": {
+        "@iac-factory/ecma": "^0.1.10"
+    },
+    "author": {
+        "name": "Jacob B. Sanders",
+        "url": "https://github.com/iac-factory",
+        "organization": true
+    },
+    "scripts": {
+        "build": "tsc --build $(dirname $(npm root))",
+        "pretest": "tsc",
+        "test": "node --experimental-vm-modules $(command -v jest) --config jest.config.js --detectOpenHandles",
+        "prestart": "tsc",
+        "start": "ts-node $(dirname $(npm root))",
+        "development": "nodemon --ext ts --ignore js --exec \"tsc --diagnostics && ts-node .\"",
+        "test-commit": "npx commitlint --from HEAD~1 --to HEAD --verbose",
+        "uninstall-husky": "npm uninstall husky && git config --unset core.hooksPath",
+        "maps": "find ./packages -type f -name '*.map' -exec rm -rf {} \\;",
+        "declarations": "find ./packages -type f -name '*.d.*' -exec rm -rf {} \\;",
+        "clean": "npm run declarations && npm run maps && find ./packages -type f -name '*.js' -exec rm -rf {} \\;"
+    }
+}
