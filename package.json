@@ -1,11 +1,10 @@
 {
     "name": "@iac-factory/walker",
-    "version": "0.2.7",
+    "version": "0.2.11",
     "description": "File-Descriptor Event Handler + Listener",
     "optionalDependencies": {
         "@swc/core": "^1.2.182",
         "@swc/helpers": "^0.3.15",
-        "tslib": "^2.4.0",
         "ts-node": "^10.7.0"
     },
     "publishConfig": {
@@ -21,7 +20,8 @@
         "typescript": "^4.6.4"
     },
     "dependencies": {
-        "@iac-factory/ecma": "^0.1.10"
+        "@iac-factory/ecma": "^0.1.10",
+        "tslib": "^2.4.0"
     },
     "author": {
         "name": "Jacob B. Sanders",
@@ -32,6 +32,7 @@
         "build": "tsc --build $(dirname $(npm root))",
         "pretest": "tsc",
         "test": "node --experimental-vm-modules $(command -v jest) --config jest.config.js --detectOpenHandles",
+        "prepublishOnly": "npm run build",
         "prestart": "tsc",
         "start": "ts-node $(dirname $(npm root))",
         "development": "nodemon --ext ts --ignore js --exec \"tsc --diagnostics && ts-node .\"",

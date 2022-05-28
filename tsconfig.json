@@ -16,7 +16,6 @@
         "noUncheckedIndexedAccess": true,
         "resolveJsonModule": true,
         "noEmitOnError": true,
-        "outDir": "distribution",
         "allowJs": true,
         "strictBindCallApply": true,
         "noImplicitAny": true,
@@ -36,5 +35,5 @@
         "importHelpers": true
     },
     "include": ["**/*.json", "**/*.ts"],
-    "exclude": ["ci", "iac", "distribution", "coverage", "scripts"]
+    "exclude": ["ci", "iac", "coverage", "scripts"]
 }

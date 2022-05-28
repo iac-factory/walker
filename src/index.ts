@@ -126,34 +126,6 @@ Walker.prototype.walk = function ( descriptor: FS.PathLike ) {
 
 export type Walk = typeof Walker.prototype.walk & ( ( descriptor: FS.PathLike ) => void );
 
-export const Listener = new Walker.prototype.constructor;
-
-Listener.filter( ( descriptor: FS.Dirent, statistics: FS.Stats ) => {
-    return !( descriptor.name === "/etc/pam.d" || String( descriptor ) === "/etc/pam.d" );
-} ).on( "descriptor" as const as Emitters, function ( descriptor: FS.Dirent, statistics: FS.Stats ) {
-    console.log( "Descriptor" + ":", descriptor );
-} ).on( "directory" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
-    console.log( "Directory" + ":", descriptor );
-} ).on( "file" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
-    console.log( "File" + ":", descriptor );
-} ).on( "symbolic-link" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
-    console.log( "Symbolic-Link" + ":", descriptor );
-} ).on( "block-device" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
-    console.log( "Block-Device" + ":", descriptor );
-} ).on( "fifo" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
-    console.log( "FIFO" + ":", descriptor );
-} ).on( "socket" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
-    console.log( "Socket" + ":", descriptor );
-} ).on( "character-device" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
-    console.log( "Character-Device" + ":", descriptor );
-} ).on( "error" as const as Emitters, function ( exception?: Error, descriptor?: FS.Dirent, statistics?: FS.Stats ) {
-    console.error( "Error" + ":", exception, descriptor, statistics );
-} ).on( "end" as const as Emitters, function () {
-    console.log( "Complete" );
-} );
-
-Listener.walk( "." );
-
 export enum Emitter {
     "descriptor" = "descriptor",
     "directory" = "directory",
@@ -173,3 +145,7 @@ export type Instance = Event & WeakMapConstructor & { close: Closure; filter: Fi
 export type { FS };
 export type { Stats } from "fs";
 export type { Dirent } from "fs";
+
+export const Listener = new Walker.prototype.constructor;
+
+export default Listener;
