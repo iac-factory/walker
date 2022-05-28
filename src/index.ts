@@ -7,7 +7,7 @@ import Event from "events";
 export type Private<Generic> = Generic & { prototype: Function["prototype"] };
 
 /*** @constructor */
-export function Walker (this: Prototype) {
+export function Walker( this: Prototype ) {
     if ( !( ( this ) instanceof ( Walker ) ) ) void null;
 
     Internal.set( this, {
@@ -17,15 +17,20 @@ export function Walker (this: Prototype) {
     } );
 }
 
-export type Prototype = typeof Walker;
+export type Prototype = typeof Walker & Instance;
 
-Walker.prototype = Object.create(Event.prototype);
+Walker.prototype = Object.create( Event.prototype );
 Walker.prototype.constructor = Walker;
 
-// export const Unknown: () => Error = Walker.Unknown = Exception (
-//     "Unknown-File-Type-Exception",
-//     "The File Type of the Descriptor Context Couldn't be Determined"
-// );
+Walker.prototype.close = function () {
+    if ( --this.total === 0 ) this.emit( "end" );
+
+    const internal = Internal.get( this );
+
+    FS.writeFileSync( "output.json", JSON.stringify( internal, null, 4 ), { encoding: "utf-8" } );
+};
+
+export type Closure = typeof Walker.prototype.close & ( () => void );
 
 /***
  * Setup the Directory Filter Function
@@ -34,34 +39,38 @@ Walker.prototype.constructor = Walker;
  * @param fn {Function} a function that will be given a directory name; if resolving
  * a directory, the return will additionally contain its children
  */
-Walker.prototype.filter = function (fn: FS.PathLike) {
+Walker.prototype.filter = function ( fn: FS.PathLike ) {
     this.filter = fn;
 
-    return this;
+    return this as Instance;
 };
 
+export type Filter = typeof Walker.prototype.filter & ( ( fn: FS.PathLike ) => void );
+
 /*** Process a file or directory */
-Walker.prototype.walk = function (descriptor: FS.PathLike) {
-    const instance = this;
+Walker.prototype.walk = function ( descriptor: FS.PathLike ) {
+    const instance: Instance = this;
 
-    const internal = Internal.get(this);
+    const internal = Internal.get( this );
 
-    FS.lstat( descriptor, function (exception, statistics) {
+    FS.lstat( descriptor, function ( exception, statistics ) {
         if ( exception ) {
             instance.emit( "error", exception, descriptor, statistics );
             instance.close();
             return;
         }
 
-        if ( !descriptor || !statistics ) { instance.close(); }
+        if ( !descriptor || !statistics ) {
+            instance.close();
+        }
 
         if ( statistics.isDirectory() ) {
             if ( !descriptor || !statistics || !instance.filter( descriptor ) ) {
                 instance.close();
             } else {
-                (internal) && internal.total++;
-                (internal) && internal.directories.push(descriptor);
-                FS.readdir( descriptor, function (exception, files) {
+                ( internal ) && internal.total++;
+                ( internal ) && internal.directories.push( descriptor );
+                FS.readdir( descriptor, function ( exception, files ) {
                     if ( exception ) {
                         instance.emit( "error", exception, descriptor, statistics, files );
                         instance.close();
@@ -69,7 +78,7 @@ Walker.prototype.walk = function (descriptor: FS.PathLike) {
                     }
 
                     instance.emit( "directory", descriptor, statistics );
-                    files.forEach( function (part) {
+                    files.forEach( function ( part ) {
                         if ( typeof descriptor === "string" ) instance.walk( Path.join( descriptor, part ) );
                     } );
                     instance.close();
@@ -97,13 +106,13 @@ Walker.prototype.walk = function (descriptor: FS.PathLike) {
                                 instance.close();
                             } else {
                                 if ( statistics.isFile() ) {
-                                    (internal) && internal.total++;
-                                    (internal) && internal.files.push(descriptor);
+                                    ( internal ) && internal.total++;
+                                    ( internal ) && internal.files.push( descriptor );
 
                                     instance.emit( "file", descriptor, statistics );
                                     instance.close();
                                 } else {
-                                    instance.emit( "error", new Error("Unknown-File-Type-Exception"), descriptor, statistics );
+                                    instance.emit( "error", new Error( "Unknown-File-Type-Exception" ), descriptor, statistics );
                                     instance.close();
                                 }
                             }
@@ -115,59 +124,51 @@ Walker.prototype.walk = function (descriptor: FS.PathLike) {
     } );
 };
 
-Walker.prototype.close = function () {
-    if ( --this.total === 0 ) this.emit( "end" );
+export type Walk = typeof Walker.prototype.walk & ( ( descriptor: FS.PathLike ) => void );
 
-    const internal = Internal.get(this);
+export const Listener = new Walker.prototype.constructor;
 
-    FS.writeFileSync("output.json", JSON.stringify(internal, null, 4), { encoding: "utf-8"});
-};
-
-export const walker = new Walker.prototype.constructor;
-
-walker.filter( (descriptor: FS.Dirent, statistics: FS.Stats) => {
+Listener.filter( ( descriptor: FS.Dirent, statistics: FS.Stats ) => {
     return !( descriptor.name === "/etc/pam.d" || String( descriptor ) === "/etc/pam.d" );
-} )
-    .on( "descriptor", function (descriptor: FS.Dirent, statistics: FS.Stats) {
-        console.log( "Descriptor" + ":", descriptor );
-    } )
-    .on( "directory", function (this: Event, descriptor: FS.Dirent, statistics: FS.Stats) {
-        console.log( "Directory" + ":", descriptor );
-        return this as NodeJS.EventEmitter;
-    } )
-    .on( "file", function (this: Event, descriptor: FS.Dirent, statistics: FS.Stats) {
-        console.log( "File" + ":", descriptor );
-        return this as NodeJS.EventEmitter;
-    } )
-    .on( "symbolic-link", function (this: Event, descriptor: FS.Dirent, statistics: FS.Stats) {
-        console.log( "Symbolic-Link" + ":", descriptor );
-        return this as NodeJS.EventEmitter;
-    } )
-    .on( "block-device", function (this: Event, descriptor: FS.Dirent, statistics: FS.Stats) {
-        console.log( "Block-Device" + ":", descriptor );
-        return this as NodeJS.EventEmitter;
-    } )
-    .on( "fifo", function (this: Event, descriptor: FS.Dirent, statistics: FS.Stats) {
-        console.log( "FIFO" + ":", descriptor );
-        return this as NodeJS.EventEmitter;
-    } )
-    .on( "socket", function (this: Event, descriptor: FS.Dirent, statistics: FS.Stats) {
-        console.log( "Socket" + ":", descriptor );
-        return this as NodeJS.EventEmitter;
-    } )
-    .on( "character-device", function (this: Event, descriptor: FS.Dirent, statistics: FS.Stats) {
-        console.log( "Character-Device" + ":", descriptor );
-        return this as NodeJS.EventEmitter;
-    } )
-    .on( "error", function (this: Event, exception?: Error, descriptor?: FS.Dirent, statistics?: FS.Stats) {
-        console.error( "Error" + ":", exception, descriptor, statistics );
-        return this as NodeJS.EventEmitter;
-    } )
-    .on( "end", function () {
-        console.log( "Complete" );
-    } );
+} ).on( "descriptor" as const as Emitters, function ( descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Descriptor" + ":", descriptor );
+} ).on( "directory" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Directory" + ":", descriptor );
+} ).on( "file" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "File" + ":", descriptor );
+} ).on( "symbolic-link" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Symbolic-Link" + ":", descriptor );
+} ).on( "block-device" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Block-Device" + ":", descriptor );
+} ).on( "fifo" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "FIFO" + ":", descriptor );
+} ).on( "socket" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Socket" + ":", descriptor );
+} ).on( "character-device" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Character-Device" + ":", descriptor );
+} ).on( "error" as const as Emitters, function ( exception?: Error, descriptor?: FS.Dirent, statistics?: FS.Stats ) {
+    console.error( "Error" + ":", exception, descriptor, statistics );
+} ).on( "end" as const as Emitters, function () {
+    console.log( "Complete" );
+} );
 
-walker.walk(".");
+Listener.walk( "." );
+
+export enum Emitter {
+    "descriptor" = "descriptor",
+    "directory" = "directory",
+    "file" = "file",
+    "symbolic-link" = "symbolic-link",
+    "block-device" = "block-device",
+    "fifo" = "fifo",
+    "socket" = "socket",
+    "character-device" = "character-device",
+    "error" = "error",
+    "end" = "end"
+}
+
+export type Emitters = keyof typeof Emitter;
+export type Instance = Event & WeakMapConstructor & { close: Closure; filter: Filter; walk: Walk };
 
 export type { FS };
 export type { Stats } from "fs";

@@ -1,9 +1,39 @@
-# `api` #
+# `@iac-factory/walker` #
+
+*File-Descriptor Event Handler + Listener*
 
 ## Usage ##
 
-```bash
-npm install && ts-node "$(dirname $(npm root))"
+```node
+/*** ESM Module Wrapper for Common-JS (No Additional Configuration Required) */
+import("@iac-factory/ecma");
+
+import { Listener } from "@iac-factory/walker";
+Listener.filter( ( descriptor: FS.Dirent, statistics: FS.Stats ) => {
+    return !( descriptor.name === "/etc/pam.d" || String( descriptor ) === "/etc/pam.d" );
+} ).on( "descriptor" as const as Emitters, function ( descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Descriptor" + ":", descriptor );
+} ).on( "directory" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Directory" + ":", descriptor );
+} ).on( "file" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "File" + ":", descriptor );
+} ).on( "symbolic-link" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Symbolic-Link" + ":", descriptor );
+} ).on( "block-device" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Block-Device" + ":", descriptor );
+} ).on( "fifo" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "FIFO" + ":", descriptor );
+} ).on( "socket" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Socket" + ":", descriptor );
+} ).on( "character-device" as const as Emitters, function (descriptor: FS.Dirent, statistics: FS.Stats ) {
+    console.log( "Character-Device" + ":", descriptor );
+} ).on( "error" as const as Emitters, function ( exception?: Error, descriptor?: FS.Dirent, statistics?: FS.Stats ) {
+    console.error( "Error" + ":", exception, descriptor, statistics );
+} ).on( "end" as const as Emitters, function () {
+    console.log( "Complete" );
+} );
+
+Listener.walk( "." );
 ```
 
 ## Dependencies ##

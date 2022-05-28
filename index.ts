@@ -1,3 +1,3 @@
 import("@iac-factory/ecma");
 
-void ( async () => await import("./main") )();
+export * from "./main";
